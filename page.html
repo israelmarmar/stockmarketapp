@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+body {
+    background-color: #2c313b;
+
+    font-family: 'Roboto', sans-serif !important;
+  padding-top:10px;
+}
+
+h3{
+    color: #f8fdff;
+    padding-left: 20px;
+    padding-top: 20px;
+    opacity: .8;
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.top{
+    margin-bottom: 10px;
+    background-color: #3f5175;
+    border-radius:4px;
+    height: 400px;
+    box-shadow: 1px 1px 1px 0px rgba(37,41,51,1);
+}
+
+.bottom-left{
+    background-color: #3f5175;
+    border-radius: 4px;
+    height: 400px;
+    box-shadow: 1px 1px 1px 0px rgba(37,41,51,1);
+}
+
+.bottom-right{
+    background-color: #3f5175;
+    border-radius: 4px;
+    height: 400px;
+
+    box-shadow: 1px 1px 1px 0px rgba(37,41,51,1);
+}
+
+.shadow {
+    -webkit-filter: drop-shadow( 0px 2px 2px rgba(0,0,0,.3) );
+    filter: drop-shadow( 0px 2px 2px rgba(0,0,0,.3) );
+}
+
+.pad{
+    padding:20px;
+}
+
+.browser-legend{
+    font-size:14px;
+    opacity:.8;
+}
+
+.bottom-left-svg{
+    padding-top:40px;
+    text-align: center;
+}
+
+
+.bottom-right-svg{
+    text-align: center;
+}
+
+.line {
+    fill: none;
+    stroke: #7dc7f4;
+    stroke-width: 5px;
+
+}
+
+.axis{
+    fill:#bbc7d9;
+    opacity: 1;
+	height:10px;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: none;
+    shape-rendering: crispEdges;
+
+}
+
+.axis text {
+    font-size: 14px;
+}
+
+.y-grid .tick{
+    stroke: #4b5f87;
+    opacity: 1;
+}
+
+.default-svg{
+
+}
+
+svg{
+    display: block;
+    margin: auto;
+	position:relative;
+	top:60px;
+	padding-top:10px;
+}
+
+</style>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.1/react.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.1/react-dom.min.js"></script>
+<script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+
+<!-- load the d3.js library -->    
+<script src="http://d3js.org/d3.v3.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+
+<script type="text/babel">
+var Axis=React.createClass({
+    propTypes: {
+        h:React.PropTypes.number,
+        axis:React.PropTypes.func,
+        axisType:React.PropTypes.oneOf(['x','y'])
+ 
+    },
+ 
+    componentDidUpdate: function () { this.renderAxis(); },
+    componentDidMount: function () { this.renderAxis(); },
+    renderAxis: function () {
+        var node = ReactDOM.findDOMNode(this);
+        d3.select(node).call(this.props.axis);
+ 
+    },
+    render: function () {
+ 
+        var translate = "translate(0,"+(this.props.h)+")";
+ 
+        return (
+            <g className="axis" transform={this.props.axisType=='x'?translate:""} >
+            </g>
+        );
+    }
+ 
+});
+ 
+var Grid=React.createClass({
+    propTypes: {
+        h:React.PropTypes.number,
+        grid:React.PropTypes.func,
+        gridType:React.PropTypes.oneOf(['x','y'])
+    },
+ 
+    componentDidUpdate: function () { this.renderGrid(); },
+    componentDidMount: function () { this.renderGrid(); },
+    renderGrid: function () {
+        var node = ReactDOM.findDOMNode(this);
+        d3.select(node).call(this.props.grid);
+ 
+    },
+    render: function () {
+        var translate = "translate(0,"+(this.props.h)+")";
+        return (
+            <g className="y-grid" transform={this.props.gridType=='x'?translate:""}>
+            </g>
+        );
+    }
+ 
+});
+
+const Line = React.createClass({
+
+  propTypes: {
+    path:         React.PropTypes.string.isRequired,
+    stroke:       React.PropTypes.string,
+    strokeWidth:  React.PropTypes.number
+  },
+
+  getDefaultProps() {
+    return {
+      stroke:       'blue',
+      fill:         'none',
+      strokeWidth:  3
+    };
+  },
+
+  render() {
+    let { path, stroke, fill, strokeWidth } = this.props;
+    return (
+      <path
+        d={path}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        />
+    );
+  }
+
+});
+
+const DataSeries = React.createClass({
+
+  propTypes: {
+    colors:             React.PropTypes.func,
+    data:               React.PropTypes.object,
+    interpolationType:  React.PropTypes.string
+  },
+
+  getDefaultProps() {
+    return {
+      data:               {},
+      interpolationType:  'cardinal',
+      colors:             d3.scale.category10(),
+      xScale:             React.PropTypes.func,
+      yScale:             React.PropTypes.func
+    };
+  },
+
+  render() {
+    let { data, colors, xScale, yScale, interpolationType } = this.props;
+
+    let line = d3.svg.line()
+      .x((d) => { return xScale(d.x); })
+      .y((d) => { return yScale(d.y); });
+
+    let lines = Object.keys(data).map((series, id) => {
+      return (
+        <Line
+          path={line(data[series])}
+          seriesName={series.name}
+          stroke={colors(id)}
+          key={id}
+          />
+      );
+    });
+	
+	console.log(this.props.h);
+	  console.log(this.props.grid);
+	  console.log(this.props.yAxis);
+	  console.log(this.props.xAxis);
+	
+	
+
+    return (
+      <g transform={this.props.transform}>
+		<Grid h={this.props.h} grid={this.props.grid} gridType="y"/>
+                        <Axis h={this.props.h} axis={this.props.yAxis} axisType="y" />
+                        <Axis h={this.props.h} axis={this.props.xAxis} axisType="x"/>
+        {lines}
+      </g>
+    );
+  }
+
+});
+
+const LineChart = React.createClass({
+
+  propTypes: {
+    width:  React.PropTypes.number,
+    height: React.PropTypes.number,
+
+  },
+
+  getDefaultProps(){
+    return {
+	colors:             d3.scale.category10(),
+      width:  600,
+      height: 300,
+    }
+  },
+
+  render() {
+    var {colors, width, height} = this.props;
+	
+	var data = {
+    AMZ:[ { x: "02-11-2016", y: 20 }, { x: "03-11-2016", y: 30 }, { x: "04-11-2016", y: 10 }, { x: "05-11-2016", y: 5 },
+      { x: "06-11-2016", y: 8 }, { x: "07-11-2016", y: 15 }, { x: "08-11-2016", y: 10 } ],
+    GOOG:[ { x: "02-11-2016", y: 8 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 20 }, { x: "05-11-2016", y: 12 },
+      { x: "06-11-2016", y: 4 }, { x: "07-11-2016", y: 6 }, { x: "08-11-2016", y: 2 } ],
+    MSFT:[ { x: "02-11-2016", y: 0 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 8 }, { x: "05-11-2016", y: 2 },
+      { x: "06-11-2016", y: 6 }, { x: "07-11-2016", y: 4 }, { x: "08-11-2016", y: 2 } ]
+  };
+	
+	var margin = {top: 5, right: 50, bottom: 20, left: 50},
+            w = this.props.width - (margin.left + margin.right),
+            h = this.props.height - (margin.top + margin.bottom);
+			
+			var parseDate = d3.time.format("%m-%d-%Y").parse;
+
+        Object.keys(data).forEach(function (d) {
+			data[d].forEach(function (dt) {
+            dt.x = parseDate(dt.x);
+			});
+        });
+		
+		var key=Object.keys(data)[0];
+		console.log(data[key]);
+
+	  
+	   let xScale = d3.time.scale()
+            .domain(d3.extent(data[key], function (d) {
+                return d.x;
+            }))
+            .rangeRound([0, w]);
+			
+			
+		
+        let yScale = d3.scale.linear()
+            .domain([0,d3.max(data[key],function(d){
+                return d.y;
+            })])
+            .range([h, 0]);
+	  
+	  var yAxis = d3.svg.axis()
+            .scale(yScale)
+            .orient('left')
+            .ticks(5);
+
+       var xAxis = d3.svg.axis()
+            .scale(xScale)
+            .orient('bottom')
+            .tickValues(data[key].map(function(d,i){
+                if(i>0)
+                    return d.x;
+            }).splice(1))
+            .ticks(4);
+
+        var yGrid = d3.svg.axis()
+            .scale(yScale)
+            .orient('left')
+            .ticks(5)
+            .tickSize(-w, 0, 0)
+            .tickFormat("");
+        
+		
+		
+		let labels = Object.keys(data).map((d,id) => {
+    
+        return (<h3 style={{color: colors(id)}}>{d}</h3>);
+    });
+
+    return (
+	<div>
+      <svg width={width} height={height}>
+	  
+        <DataSeries
+          xScale={xScale}
+          yScale={yScale}
+          data={data}
+          width={width}
+          height={height}
+		  h={h}
+		  yAxis={yAxis}
+		  xAxis={xAxis}
+		  grid={yGrid}
+		  transform={'translate(' + margin.left + ',' + margin.top + ')'}
+          />
+      </svg>
+	  {labels}
+	</div>
+
+    );
+  }
+
+});
+
+
+ReactDOM.render(
+  <LineChart
+    width={600}
+    height={300}
+    />,
+  document.getElementById('container')
+);
+
+</script>
+
+<div id="container">
+
+</body>

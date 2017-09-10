@@ -1,0 +1,16 @@
+{
+  "name": "stockmarketapp",
+  "version": "0.0.1",
+  "author": "Israel Martins",
+  "description": "Chart the Stock Market",
+  "engines": {
+    "node": "latest",
+    "npm": "latest"
+  },
+  "dependencies": {
+	"express": "^4.15.4",
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
