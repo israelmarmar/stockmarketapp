@@ -98,12 +98,26 @@ h3{
 
 }
 
+.labels{
+  display: block;
+margin: auto;
+  position:relative;
+  top:60px;
+  right:50%;
+}
+
 svg{
     display: block;
     margin: auto;
 	position:relative;
 	top:60px;
 	padding-top:10px;
+}
+
+h3{
+  display: block;
+float:right;
+padding-left: 50px;
 }
 
 </style>
@@ -119,6 +133,8 @@ svg{
  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
 
 <script type="text/babel">
+
+
 var Axis=React.createClass({
     propTypes: {
         h:React.PropTypes.number,
@@ -195,6 +211,7 @@ const Line = React.createClass({
         stroke={stroke}
         strokeWidth={strokeWidth}
         />
+
     );
   }
 
@@ -227,12 +244,14 @@ const DataSeries = React.createClass({
 
     let lines = Object.keys(data).map((series, id) => {
       return (
+
         <Line
           path={line(data[series])}
           seriesName={series.name}
           stroke={colors(id)}
           key={id}
           />
+
       );
     });
 	
@@ -358,7 +377,10 @@ const LineChart = React.createClass({
 		  transform={'translate(' + margin.left + ',' + margin.top + ')'}
           />
       </svg>
-	  {labels}
+      <div className="labels">
+        {labels}
+      </div>
+	  
 	</div>
 
     );
