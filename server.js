@@ -7,6 +7,23 @@ var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456
 
 app.use(express.static(__dirname + '/'));
 
+function datenow(){
+	var today = new Date();
+var dd = today.getDate();
+var mm = today.getMonth()+1; //January is 0!
+var yyyy = today.getFullYear();
+
+if(dd<10) {
+    dd = '0'+dd
+} 
+
+if(mm<10) {
+    mm = '0'+mm
+} 
+
+ return yyyy + '-' + mm + '-' + dd;
+}
+
 app.get('/', function (req, res) {
     res.sendFile("/page.html",{root: __dirname});
 });
@@ -16,18 +33,34 @@ app.listen(port, function () {
 });
 
 app.get('/apijson', function (req, res) {
+var code=req.query.code;
+var date=datenow();
+var date2=datenow();
 
+
+date=date.replace(date.split("-")[0],""+(parseInt(date.split("-")[0])-1));
+
+console.log(date.split("-")[0]);
 
 		 options = { method: 'GET',
 		 "rejectUnauthorized": false, 
-  url: "https://www.quandl.com/api/v3/datasets/WIKI/MSFT/data.json?api_key=yZuJL_bzkHHvht37bqqy"};
+  url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2};
 
 	request(options, function (error, response, body) {
 		if (error) throw new Error(error);
 
 		var jsonobj=JSON.parse(body);
+		var jsonobj=jsonobj.dataset_data.data;
+		var array=[];
+		
+		for(var i=0;i<jsonobj.length;i++){
+		array.push({x: jsonobj[i][0], y: jsonobj[i][1]});
+		}
+		
+		jsonobj={};
+		jsonobj[code]=array;
 		//console.log(jsonobj.dataset_data.data);
-    	res.json(jsonobj.dataset_data.data);
+    	res.json(jsonobj);
 
 		});
 		

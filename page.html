@@ -77,14 +77,14 @@
     display: block;
     margin: auto;
     position:relative;
-    top:60px;
+    top:-30px;
     right:50%;
   }
   svg{
     display: block;
     margin: auto;
     position:relative;
-    top:60px;
+    top:10px;
     padding-top:10px;
      z-index: -1;
   }
@@ -123,6 +123,10 @@
   <script type="text/babel">
   var curx;
   var cury;
+  
+  function isString(x) {
+  return Object.prototype.toString.call(x) === "[object String]"
+}
 
   function tellPos(p){
   curx=p.pageX;
@@ -202,9 +206,9 @@ data.pop();
 
 var circles=data.map(function(d,i){
 
-return (<circle className="dot" r="7" cx={_self.props.x(d.x)} cy= {_self.props.y(d.y)} fill="#7dc7f4"
+return (<circle r="7" cx={_self.props.x(d.x)} cy= {_self.props.y(d.y)} fill="transparent"
  onMouseOver={_self.props.showToolTip} onMouseOut={_self.props.hideToolTip}
-stroke="#3f5175" strokeWidth="5px" key={i}  data-key={d3.time.format("%b %e")(d.x)} data-value={d.y}/>);
+  key={i}  data-key={d3.time.format("%b %e %Y")(d.x)} data-value={d.y}/>);
 });
 
 return(
@@ -374,7 +378,6 @@ return (
 <g transform={this.props.transform}>
   <Grid h={this.props.h} grid={this.props.grid} gridType="y"/>
   <Axis h={this.props.h} axis={this.props.yAxis} axisType="y" />
-  <Axis h={this.props.h} axis={this.props.xAxis} axisType="x"/>
   {lines}
   {dots}
   
@@ -401,48 +404,24 @@ height: 300,
 }
 },
 
-getInitialState:function(){
-        return {
-            tp:{ display:false,data:{key:'',value:''}},
-            width:this.props.width
-        };
-    },
-
-update: function(){
-     
-        this.setState({ tp: tooltip});
-     },
-     
-     componentDidMount() {
-  this.interval = setInterval(this.update, 100);
-},
-
 render() {
-var {colors, width, height} = this.props;
-
-var data = {
-AMZ:[ { x: "02-11-2016", y: 20 }, { x: "03-11-2016", y: 30 }, { x: "04-11-2016", y: 10 }, { x: "05-11-2016", y: 5 },
-{ x: "06-11-2016", y: 8 }, { x: "07-11-2016", y: 15 }, { x: "08-11-2016", y: 10 } ],
-GOOG:[ { x: "02-11-2016", y: 8 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 20 }, { x: "05-11-2016", y: 12 },
-{ x: "06-11-2016", y: 4 }, { x: "07-11-2016", y: 6 }, { x: "08-11-2016", y: 2 } ],
-MSFT:[ { x: "02-11-2016", y: 0 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 8 }, { x: "05-11-2016", y: 2 },
-{ x: "06-11-2016", y: 6 }, { x: "07-11-2016", y: 4 }, { x: "08-11-2016", y: 2 } ]
-};
+var {width, height, data} = this.props;
 
 var margin = {top: 5, right: 50, bottom: 20, left: 50},
 w = this.props.width - (margin.left + margin.right),
 h = this.props.height - (margin.top + margin.bottom);
 
-var parseDate = d3.time.format("%m-%d-%Y").parse;
+
+var key=Object.keys(data)[0];
+
+var parseDate = d3.time.format("%Y-%m-%d").parse;
+//var parseDate = d3.time.format("%d-%m-%Y").parse;
 
 Object.keys(data).forEach(function (d) {
 data[d].forEach(function (dt) {
 dt.x = parseDate(dt.x);
 });
 });
-
-var key=Object.keys(data)[0];
-
 
 let xScale = d3.time.scale()
 .domain(d3.extent(data[key], function (d) {
@@ -461,34 +440,17 @@ return d.y;
 var yAxis = d3.svg.axis()
 .scale(yScale)
 .orient('left')
-.ticks(5);
-
-var xAxis = d3.svg.axis()
-.scale(xScale)
-.orient('bottom')
-.tickValues(data[key].map(function(d,i){
-if(i>0)
-return d.x;
-}).splice(1))
-.ticks(4);
+.ticks(6);
 
 var yGrid = d3.svg.axis()
 .scale(yScale)
 .orient('left')
-.ticks(5)
+.ticks(6)
 .tickSize(-w, 0, 0)
 .tickFormat("");
 
-
-
-let labels = Object.keys(data).map((d,id) => {
-
-return (<h3 style={{color: colors(id)}}>{d}</h3>);
-});
-
 return (
-<div style={{height: "0px"}}>
-<ToolTip tooltip={this.state.tp}/>
+
   <svg width={width} height={height}>
 
     <DataSeries
@@ -500,11 +462,55 @@ return (
     h={h}
     w={w}
     yAxis={yAxis}
-    xAxis={xAxis}
     grid={yGrid}
     transform={'translate(' + margin.left + ',' + margin.top + ')'}
     />
   </svg>
+);
+}
+
+});
+
+
+const Chart = React.createClass({
+
+getInitialState:function(){
+        return {
+            tp:{ display:false,data:{key:'',value:''}}
+        };
+    },
+
+	getDefaultProps(){
+return {
+colors:             d3.scale.category10(),
+}
+
+},
+
+update: function(){
+		
+		if(this.state.tp!==tooltip)
+        this.setState({ tp: tooltip});
+     },
+     
+   componentDidMount() {
+  this.interval = setInterval(this.update, 100);
+  },
+
+render() {
+var data=this.props.data;
+
+let labels = Object.keys(data).map((d,id) => {
+
+return (<h3 style={{color: this.props.colors(id)}}>{d}</h3>);
+});
+
+console.log(data);
+return (
+<div style={{height: "0px"}}>
+<ToolTip tooltip={this.state.tp}/>
+  <LineChart data={data} width={this.props.width}
+height={this.props.height}/>
   <div className="labels">
     {labels}
   </div>
@@ -517,13 +523,35 @@ return (
 });
 
 
-ReactDOM.render(
-<LineChart
-width={600}
-height={300}
+var dt = {
+AMZ:[ { x: "02-11-2016", y: 20 }, { x: "03-11-2016", y: 30 }, { x: "04-11-2016", y: 10 }, { x: "05-11-2016", y: 5 },
+{ x: "06-11-2016", y: 8 }, { x: "07-11-2016", y: 15 }, { x: "08-11-2016", y: 10 } ],
+GOOG:[ { x: "02-11-2016", y: 8 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 20 }, { x: "05-11-2016", y: 12 },
+{ x: "06-11-2016", y: 4 }, { x: "07-11-2016", y: 6 }, { x: "08-11-2016", y: 2 } ],
+MSFT:[ { x: "02-11-2016", y: 0 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 8 }, { x: "05-11-2016", y: 2 },
+{ x: "06-11-2016", y: 6 }, { x: "07-11-2016", y: 4 }, { x: "08-11-2016", y: 2 } ]
+};
+
+axios.get("/apijson?code=MSFT")
+     
+        .then(function(result) {    
+      
+		dt=result.data;
+         ReactDOM.render(
+<Chart
+data={dt}
+width={1100}
+height={400}
 />,
 document.getElementById('container')
 );
+      
+        })
+
+
+/*
+			
+*/
 
 </script>
 
