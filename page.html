@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
 <style> /* set the CSS */
 
  body {
@@ -89,9 +90,7 @@
      z-index: -1;
   }
   h3{
-    display: block;
-    float:right;
-    padding-left: 50px;
+    
   }
   .shadow {
     -webkit-filter: drop-shadow( 0px 2px 2px rgba(0,0,0,.3) );
@@ -106,6 +105,31 @@
     background-color: rgb(99, 145, 218);
     text-align: center;
     padding-top: 40px;
+}
+
+.path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: dash 5s linear forwards;
+}
+
+.label{
+  width:10px;
+  height:10px;
+  background-color:white;
+  display: block;
+    float:right;
+    padding-left: 50px;
+    margin-left:20px;
+}
+
+@keyframes dash {
+   from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 </style>
@@ -132,6 +156,14 @@
   curx=p.pageX;
   cury=p.pageY;
   }
+
+Array.prototype.max = function() {
+  return Math.max.apply(null, this);
+};
+
+Array.prototype.min = function() {
+  return Math.min.apply(null, this);
+};
 
 addEventListener('mousemove', tellPos, false);
 
@@ -431,6 +463,21 @@ return d.x;
 
 
 
+var max=0;
+Object.keys(data).forEach(function (d) {
+
+var dtmax=d3.max(data[d],function(i){
+return i.y;
+});
+
+  if(dtmax>=max){
+  key=d;
+  max=dtmax;
+  }
+
+});
+
+
  let yScale = d3.scale.linear()
 .domain([0,d3.max(data[key],function(d){
 return d.y;
@@ -475,7 +522,7 @@ return (
 const Chart = React.createClass({
 
 getInitialState:function(){
-        return {
+        return {data: this.props.data,
             tp:{ display:false,data:{key:'',value:''}}
         };
     },
@@ -498,11 +545,12 @@ update: function(){
   },
 
 render() {
-var data=this.props.data;
+let data=this.state.data;
+
 
 let labels = Object.keys(data).map((d,id) => {
 
-return (<h3 style={{color: this.props.colors(id)}}>{d}</h3>);
+return (<div className="label"><h3 style={{color: this.props.colors(id)}}>{d}</h3></div>);
 });
 
 console.log(data);
@@ -522,32 +570,36 @@ height={this.props.height}/>
 
 });
 
+var codes=["MSFT","AMZN","GOOG","AAPL"];
 
-var dt = {
-AMZ:[ { x: "02-11-2016", y: 20 }, { x: "03-11-2016", y: 30 }, { x: "04-11-2016", y: 10 }, { x: "05-11-2016", y: 5 },
-{ x: "06-11-2016", y: 8 }, { x: "07-11-2016", y: 15 }, { x: "08-11-2016", y: 10 } ],
-GOOG:[ { x: "02-11-2016", y: 8 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 20 }, { x: "05-11-2016", y: 12 },
-{ x: "06-11-2016", y: 4 }, { x: "07-11-2016", y: 6 }, { x: "08-11-2016", y: 2 } ],
-MSFT:[ { x: "02-11-2016", y: 0 }, { x: "03-11-2016", y: 5 }, { x: "04-11-2016", y: 8 }, { x: "05-11-2016", y: 2 },
-{ x: "06-11-2016", y: 6 }, { x: "07-11-2016", y: 4 }, { x: "08-11-2016", y: 2 } ]
-};
+var dt = {};
 
-axios.get("/apijson?code=MSFT")
+    codes.forEach(function(code,i){
+    axios.get("/apijson?code="+code)
      
         .then(function(result) {    
       
-		dt=result.data;
-         ReactDOM.render(
-<Chart
-data={dt}
-width={1100}
-height={400}
-/>,
-document.getElementById('container')
-);
-      
+		    var key=Object.keys(result.data)[0];
+         dt[key]=result.data[key];
+          
         })
 
+    })
+
+
+var interval = setInterval(function(){
+          
+          if(Object.keys(dt).length==codes.length){
+          ReactDOM.render(
+          <Chart
+          data={dt}
+          width={1100}
+          height={400}
+          />,
+          document.getElementById('container')); 
+          clearInterval(interval);
+          }
+          }, 100);
 
 /*
 			

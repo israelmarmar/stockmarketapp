@@ -40,8 +40,6 @@ var date2=datenow();
 
 date=date.replace(date.split("-")[0],""+(parseInt(date.split("-")[0])-1));
 
-console.log(date.split("-")[0]);
-
 		 options = { method: 'GET',
 		 "rejectUnauthorized": false, 
   url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2};
@@ -50,6 +48,8 @@ console.log(date.split("-")[0]);
 		if (error) throw new Error(error);
 
 		var jsonobj=JSON.parse(body);
+
+		if(jsonobj.dataset_data){
 		var jsonobj=jsonobj.dataset_data.data;
 		var array=[];
 		
@@ -61,6 +61,8 @@ console.log(date.split("-")[0]);
 		jsonobj[code]=array;
 		//console.log(jsonobj.dataset_data.data);
     	res.json(jsonobj);
+    	}else
+    	res.redirect("/apijson?code="+code);
 
 		});
 		
