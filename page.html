@@ -8,14 +8,7 @@
     font-family: 'Roboto', sans-serif !important;
     padding-top:10px;
   }
-  h3{
-    color: #f8fdff;
-    padding-left: 20px;
-    padding-top: 20px;
-    opacity: .8;
-    font-weight: 400;
-    font-size: 20px;
-  }
+  
   .top{
     margin-bottom: 10px;
     background-color: #3f5175;
@@ -78,7 +71,7 @@
     display: block;
     margin: auto;
     position:relative;
-    top:-30px;
+    top:10px;
     right:50%;
   }
   svg{
@@ -89,9 +82,7 @@
     padding-top:10px;
      z-index: -1;
   }
-  h3{
-    
-  }
+  
   .shadow {
     -webkit-filter: drop-shadow( 0px 2px 2px rgba(0,0,0,.3) );
     filter: drop-shadow( 0px 2px 2px rgba(0,0,0,.3) );
@@ -114,13 +105,51 @@
 }
 
 .label{
-  width:10px;
-  height:10px;
-  background-color:white;
-  display: block;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+  text-align: center;
+  
+  height:30px;
+
     float:right;
-    padding-left: 50px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 6px;
     margin-left:20px;
+cursor:pointer;
+opacity: .8;
+    font-weight: 400;
+    font-size: 20px;
+    margin: auto;
+
+}
+
+.label:hover{
+
+  background-color:#6c7993;
+
+}
+
+.close{
+      float: right;
+  font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    color: #000; 
+    
+    filter: alpha(opacity=20);
+    opacity: .2;
+        padding: 0;
+    cursor: pointer;
+    background-color: initial;
+    border-style: solid;
+    border-color:inherit;
+    margin-left:8px;
+}
+
+.close:hover{
+  color: black; 
+  text-shadow: 0 1px 0 #fff;
 }
 
 @keyframes dash {
@@ -550,7 +579,7 @@ let data=this.state.data;
 
 let labels = Object.keys(data).map((d,id) => {
 
-return (<div className="label"><h3 style={{color: this.props.colors(id)}}>{d}</h3></div>);
+return (<div className="label" style={{color: this.props.colors(id)}}>{d}<button className="close">×</button></div>);
 });
 
 console.log(data);
