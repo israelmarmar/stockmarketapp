@@ -72,7 +72,9 @@
     margin: auto;
     position:relative;
     top:10px;
-    right:50%;
+    float:left;
+    left: 50%;
+    text-align: center;
   }
   svg{
     display: block;
@@ -98,20 +100,14 @@
     padding-top: 40px;
 }
 
-.path {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: dash 5s linear forwards;
-}
-
 .label{
+   display: inline-block;
     border: 1px solid transparent;
     border-radius: 4px 4px 0 0;
   text-align: center;
   
   height:30px;
 
-    float:right;
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 6px;
@@ -121,6 +117,8 @@ opacity: .8;
     font-weight: 400;
     font-size: 20px;
     margin: auto;
+    position: relative;
+    left: -50%;
 
 }
 
@@ -131,7 +129,7 @@ opacity: .8;
 }
 
 .close{
-      float: right;
+  float: right;
   font-size: 21px;
     font-weight: 700;
     line-height: 1;
@@ -145,6 +143,7 @@ opacity: .8;
     border-style: solid;
     border-color:inherit;
     margin-left:8px;
+     z-index: -1;
 }
 
 .close:hover{
@@ -152,16 +151,153 @@ opacity: .8;
   text-shadow: 0 1px 0 #fff;
 }
 
+
+path {
+  stroke-dasharray: 5000;
+  stroke-dashoffset: 5000;
+  animation: dash 1s linear forwards;
+}
+
 @keyframes dash {
-   from {
-    stroke-dashoffset: 1000;
+  from {
+    stroke-dashoffset: -1000;
   }
   to {
     stroke-dashoffset: 0;
   }
 }
 
+
+.add{
+
+  padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 6px;
+    margin: auto;
+    margin-top:100px;
+
+    position:absolute;
+    right:50%;
+
+}
+
+.btn{
+
+color: #fff;
+    background-color: #428bca;
+    border-color: #357ebd;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.form{
+  background-color:
+rgb(255, 255, 255)
+;
+#fff.form-control56d0d3f6.vendor.css:5
+whiteinputuser agent stylesheet
+background-image:
+none
+;
+border-bottom-color:
+rgb(191, 200, 208)
+;
+border-bottom-left-radius:
+4px
+;
+border-bottom-right-radius:
+0px
+;
+border-bottom-style:
+solid
+;
+border-bottom-width:
+1px
+;
+border-collapse:
+separate
+;
+border-image-outset:
+0px
+;
+border-image-repeat:
+stretch
+;
+border-image-slice:
+100%
+;
+border-image-source:
+none
+;
+border-image-width:
+1
+;
+border-left-color:
+rgb(191, 200, 208)
+;
+border-left-style:
+solid
+;
+border-left-width:
+1px
+;
+border-right-color:
+rgb(191, 200, 208)
+;
+border-right-style:
+solid
+;
+border-right-width:
+1px
+;
+border-top-color:
+rgb(191, 200, 208)
+;
+border-top-left-radius:
+4px
+;
+border-top-right-radius:
+0px
+;
+border-top-style:
+solid
+;
+border-top-width:
+1px
+;
+box-shadow:
+rgba(0, 0, 0, 0.075) 0px 1px 1px 0px inset, rgba(102, 175, 233, 0.075) 0px 0px 1.0096px 0px
+;
+padding-bottom:
+6px
+;
+padding-left:
+12px
+;
+padding-right:
+12px
+;
+padding-top:
+6px
+;
+}
+
 </style>
+
 <body>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.1/react.min.js"></script>
@@ -179,6 +315,14 @@ opacity: .8;
   
   function isString(x) {
   return Object.prototype.toString.call(x) === "[object String]"
+}
+
+function encode(string) {
+    var number = "0x";
+    var length = string.length;
+    for (var i = 0; i < length; i++)
+        number += string.charCodeAt(i).toString(16);
+    return number;
 }
 
   function tellPos(p){
@@ -420,7 +564,7 @@ return (
 <Line
 path={line(data[series])}
 seriesName={series.name}
-stroke={colors(id)}
+stroke={colors(encode(series))}
 key={id}
 />
 );
@@ -478,6 +622,7 @@ var key=Object.keys(data)[0];
 var parseDate = d3.time.format("%Y-%m-%d").parse;
 //var parseDate = d3.time.format("%d-%m-%Y").parse;
 
+if(isString(data[key][0].x))
 Object.keys(data).forEach(function (d) {
 data[d].forEach(function (dt) {
 dt.x = parseDate(dt.x);
@@ -551,7 +696,8 @@ return (
 const Chart = React.createClass({
 
 getInitialState:function(){
-        return {data: this.props.data,
+var obj=JSON.stringify(this.props.data);
+        return {data: obj,
             tp:{ display:false,data:{key:'',value:''}}
         };
     },
@@ -570,16 +716,35 @@ update: function(){
      },
      
    componentDidMount() {
-  this.interval = setInterval(this.update, 100);
+ this.interval = setInterval(this.update, 100);
+  },
+
+  delete: function(evt){
+    var json=JSON.parse(this.state.data);
+    console.log(this.state.data);
+    delete json[evt.target.id];
+    this.setState({ data: JSON.stringify(json)});
+
+  },
+
+  insert: function(){
+  var json=JSON.parse(this.state.data);
+  var th=this;
+  axios.get("/apijson?code="+document.getElementById('textfield').value)
+     
+        .then(function(result) {    
+        var key=Object.keys(result.data)[0];
+        json[key]=result.data[key];
+        th.setState({ data: JSON.stringify(json)});  
+        })
+
   },
 
 render() {
-let data=this.state.data;
+var data=JSON.parse(this.state.data);
 
-
-let labels = Object.keys(data).map((d,id) => {
-
-return (<div className="label" style={{color: this.props.colors(id)}}>{d}<button className="close">×</button></div>);
+var labels = Object.keys(data).map((d,id) => {
+return (<div className="label" style={{color: this.props.colors(encode(d))}}>{d}<button id={d} onClick={this.delete} className="close">×</button></div>);
 });
 
 console.log(data);
@@ -590,7 +755,13 @@ return (
 height={this.props.height}/>
   <div className="labels">
     {labels}
+
   </div>
+
+  <div className="add">
+<input id="textfield" className="form" type="text" placeholder="Add a new thing here." />
+<button className="btn" onClick={this.insert}>Add New</button>
+</div>
 
 </div>
 
@@ -617,8 +788,7 @@ var dt = {};
 
 
 var interval = setInterval(function(){
-          
-          if(Object.keys(dt).length==codes.length){
+         if(Object.keys(dt).length==codes.length){
           ReactDOM.render(
           <Chart
           data={dt}
@@ -628,11 +798,10 @@ var interval = setInterval(function(){
           document.getElementById('container')); 
           clearInterval(interval);
           }
+          
           }, 100);
 
-/*
-			
-*/
+
 
 </script>
 
