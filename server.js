@@ -42,7 +42,9 @@ date=date.replace(date.split("-")[0],""+(parseInt(date.split("-")[0])-1));
 
 		 options = { method: 'GET',
 		 "rejectUnauthorized": false, 
-  url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2};
+  url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2,
+	proxy: process.env.HTTP_PROXY
+	};
 
 	request(options, function (error, response, body) {
 		if (error) throw new Error(error);
