@@ -88,7 +88,6 @@ encode(string) {
     console.log(this.props)
 
     let lines = Object.keys(data).map((series, id) => {
-      console.log(series)
       return (
       <Line
       path={line(data[series])}

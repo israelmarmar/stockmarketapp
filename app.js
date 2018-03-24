@@ -8,37 +8,32 @@ import * as func from './funcs'
 
 
 var tooltip={ display:false,data:{key:'',value:''}};
+var codes;
+
+if(localStorage.getItem("codes")!==null){
+  console.log(window.localStorage.getItem("codes"));
+  codes=JSON.parse(window.localStorage.getItem("codes"));
+}
+else
+  codes=["MSFT","AMZN","GOOG","AAPL"];
 
 
-  var codes;
-  if(localStorage.getItem("codes")!==null)
-    codes=JSON.parse(window.localStorage.getItem("codes"));
-  else
-    codes=["MSFT","AMZN","GOOG","AAPL"];
+var dt = {};
 
+const parameterizeArray = (key, arr) => {
+  arr = arr.map(encodeURIComponent)
+  return '?'+key+'[]=' + arr.join('&'+key+'[]=')
+}
 
-  var dt = {};
+var cds=parameterizeArray('codes', codes)
+console.log(cds)
 
-  codes.forEach(function(code,i){
-    axios.get("/apijson?code="+code)
-    
-    .then(function(result) {    
-      
-      var key=Object.keys(result.data)[0];
-      dt[key]=result.data[key];
-      
-    })
+  axios.get("/apijson"+cds)
+
+  .then(function(result) {    
+
+    ReactDOM.render(<Chart data={result.data} width={1100} height={400} />, document.getElementById('container')); 
 
   })
-
-
-  var interval = setInterval(function(){
-    if(Object.keys(dt).length==codes.length){
-      ReactDOM.render(<Chart data={dt} width={1100} height={400} />, document.getElementById('container')); 
-
-      clearInterval(interval);
-    }
-    
-  }, 100);
 
 

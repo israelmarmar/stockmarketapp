@@ -9,65 +9,92 @@ app.use(express.static(__dirname + '/'));
 
 function datenow(){
 	var today = new Date();
-var dd = today.getDate();
+	var dd = today.getDate();
 var mm = today.getMonth()+1; //January is 0!
 var yyyy = today.getFullYear();
 
 if(dd<10) {
-    dd = '0'+dd
+	dd = '0'+dd
 } 
 
 if(mm<10) {
-    mm = '0'+mm
+	mm = '0'+mm
 } 
 
- return yyyy + '-' + mm + '-' + dd;
+return yyyy + '-' + mm + '-' + dd;
 }
 
 app.get('/', function (req, res) {
-    res.sendFile("/page.html",{root: __dirname});
+	res.sendFile("/page.html",{root: __dirname});
 });
 
 app.listen(port, function () {
- console.log("ligado");
+	console.log("ligado");
 });
 
 app.get('/apijson', function (req, res) {
-var code=req.query.code;
-var date=datenow();
-var date2=datenow();
-
-
-date=date.replace(date.split("-")[0],""+(parseInt(date.split("-")[0])-1));
+	var codes=req.query.codes;
 //o
-		 options = { method: 'GET',
-		 "rejectUnauthorized": false, 
-  url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2,
-	proxy: process.env.HTTP_PROXY
-	};
 
+var resp=res;
+
+function onereq(code){
+	var date=datenow();
+	var date2=datenow();
+	date=date.replace(date.split("-")[0],""+(parseInt(date.split("-")[0])-1));
+
+	options = { method: 'GET',
+	"rejectUnauthorized": false, 
+	url: "https://www.quandl.com/api/v3/datasets/WIKI/"+code+"/data.json?api_key=yZuJL_bzkHHvht37bqqy&start_date="+date+"&end_date="+date2,
+	proxy: process.env.HTTP_PROXY
+};
+
+return new Promise(function (resolve, reject) {
 	request(options, function (error, response, body) {
 		if (error) throw new Error(error);
 
 		var jsonobj=JSON.parse(body);
 
 		if(jsonobj.dataset_data){
-		var jsonobj=jsonobj.dataset_data.data;
-		var array=[];
-		
-		for(var i=0;i<jsonobj.length;i++){
-		array.push({x: jsonobj[i][0], y: jsonobj[i][1]});
-		}
-		
-		jsonobj={};
-		jsonobj[code]=array;
+			var jsonobj=jsonobj.dataset_data.data;
+			var array=[];
+
+			for(var i=0;i<jsonobj.length;i++){
+				array.push({x: jsonobj[i][0], y: jsonobj[i][1]});
+			}
+
+			jsonobj={};
+			jsonobj[code]=array;
+			resolve(jsonobj)
 		//console.log(jsonobj.dataset_data.data);
-    	res.json(jsonobj);
-    	}else
-    	res.redirect("/apijson?code="+code);
+	}else
+	resp.redirect("/apijson?code="+code);
 
-		});
-		
+});
 
+})
+
+}
+
+
+async function multireq(codes,resp) {
+	obj={}
+	console.log(codes)
+	for(var i=0;i<codes.length;i++){
+	console.log(codes[i])
+	var res=await onereq(codes[i]);
+
+	var key=Object.keys(res)[0];
+	obj[key]=res[key];
+	
+	}
+
+	if(Object.keys(res).length==1)
+	console.log(obj)
+
+	resp.json(obj)	
+};
+
+multireq(codes,res)
 
 });

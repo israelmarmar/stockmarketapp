@@ -42,7 +42,7 @@ export default class Chart extends Component {
       console.log(this)
       var json=JSON.parse(this.state.data);
       var th=this;
-      axios.get("/apijson?code="+document.getElementById('textfield').value)
+      axios.get("/apijson?codes[]="+document.getElementById('textfield').value)
       
       .then(function(result) {    
         var key=Object.keys(result.data)[0];
